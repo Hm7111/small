@@ -1,6 +1,6 @@
 import React from 'react';
 import { ServiceRequest } from '../../../types/requests';
-import DataTable, { Column } from '../../../shared/components/DataTable';
+import { DataTable, Column } from '../../../shared/components/DataTable';
 import { StatusBadge } from '../../../shared';
 import ActionButtons from '../../../shared/components/ActionButtons';
 import { formatGregorianDate } from '../../../shared/utils/dateHelpers';
