@@ -1,0 +1,434 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Clock, FileText, Calendar, DollarSign, Check, X,
+  Search, Filter, Eye, Download, AlertTriangle, ArrowRight
+} from 'lucide-react';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
+import { StatusBadge } from '../../shared';
+import { formatGregorianDate } from '../../shared/utils/dateHelpers';
+import { formatCurrency } from '../../utils/helpers';
+import RequestDetailsModal from './requests/RequestDetailsModal';
+
+interface ServiceRequest {
+  id: string;
+  member_id: string;
+  service_name: string;
+  status: 'pending' | 'under_review' | 'approved' | 'rejected';
+  requested_amount?: number;
+  approved_amount?: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  processed_at?: string;
+  rejection_reason?: string;
+}
+
+interface BeneficiaryRequestsProps {
+  memberData: any;
+}
+
+const BeneficiaryRequests: React.FC<BeneficiaryRequestsProps> = ({ memberData }) => {
+  const [requests, setRequests] = useState<ServiceRequest[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<ServiceRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  useEffect(() => {
+    if (memberData?.id) {
+      loadRequests();
+    }
+  }, [memberData?.id]);
+
+  useEffect(() => {
+    filterRequests();
+  }, [requests, searchTerm, statusFilter]);
+
+  const loadRequests = async () => {
+    setIsLoading(true);
+    try {
+      if (!memberData?.id) {
+        throw new Error('معرف المستفيد غير متوفر');
+      }
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/member-requests`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'X-Member-ID': memberData.id,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`فشل في جلب البيانات: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (result.success && result.requests) {
+          setRequests(result.requests);
+        } else {
+          throw new Error(result.error || 'فشل في جلب طلبات الخدمة');
+        }
+      } catch (fetchError) {
+        console.error('خطأ في استدعاء API:', fetchError);
+        throw fetchError;
+      }
+    } catch (error) {
+      console.error('خطأ في تحميل طلبات الخدمة:', error);
+      setRequests([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterRequests = () => {
+    let filtered = requests;
+
+    if (searchTerm) {
+      filtered = filtered.filter(request => 
+        request.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.id.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(request => request.status === statusFilter);
+    }
+
+    setFilteredRequests(filtered);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <StatusBadge status="pending" text="قيد الانتظار" />;
+      case 'under_review':
+        return <StatusBadge status="info" text="قيد المراجعة" />;
+      case 'approved':
+        return <StatusBadge status="success" text="تمت الموافقة" />;
+      case 'rejected':
+        return <StatusBadge status="error" text="مرفوض" />;
+      default:
+        return <StatusBadge status="info" text={status} />;
+    }
+  };
+
+  const handleViewDetails = (request: ServiceRequest) => {
+    setSelectedRequest(request);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowDetailsModal(false);
+    setSelectedRequest(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-2xl shadow-sm p-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-20 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-sm p-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <Clock className="w-8 h-8 text-purple-600" />
+            طلباتي
+          </h2>
+          <p className="text-gray-600 mt-2">
+            متابعة حالة طلبات الخدمات المقدمة
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            type="text"
+            placeholder="البحث في الطلبات..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            icon={<Search className="w-5 h-5" />}
+          />
+          <Select
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: 'all', label: 'جميع الحالات' },
+              { value: 'pending', label: 'قيد الانتظار' },
+              { value: 'under_review', label: 'قيد المراجعة' },
+              { value: 'approved', label: 'تمت الموافقة' },
+              { value: 'rejected', label: 'مرفوض' }
+            ]}
+            icon={<Filter className="w-5 h-5" />}
+          />
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">إجمالي:</span>
+            <span className="font-bold text-purple-600">{filteredRequests.length}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">الطلبات الكلية</p>
+              <p className="text-2xl font-bold text-gray-900">{requests.length}</p>
+            </div>
+            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <FileText className="w-5 h-5 text-gray-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">قيد المراجعة</p>
+              <p className="text-2xl font-bold text-amber-600">
+                {requests.filter(r => ['pending', 'under_review'].includes(r.status)).length}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+              <Clock className="w-5 h-5 text-amber-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">تمت الموافقة</p>
+              <p className="text-2xl font-bold text-green-600">
+                {requests.filter(r => r.status === 'approved').length}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <Check className="w-5 h-5 text-green-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">مرفوضة</p>
+              <p className="text-2xl font-bold text-red-600">
+                {requests.filter(r => r.status === 'rejected').length}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+              <X className="w-5 h-5 text-red-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Requests List */}
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-6">قائمة الطلبات</h3>
+        
+        {filteredRequests.length > 0 ? (
+          <div className="space-y-4">
+            {filteredRequests.map((request) => (
+              <div 
+                key={request.id} 
+                className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => handleViewDetails(request)}
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      request.status === 'approved' ? 'bg-green-100 text-green-600' :
+                      request.status === 'rejected' ? 'bg-red-100 text-red-600' :
+                      request.status === 'under_review' ? 'bg-blue-100 text-blue-600' :
+                      'bg-amber-100 text-amber-600'
+                    }`}>
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{request.service_name}</h4>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Calendar className="w-4 h-4" />
+                        {formatGregorianDate(request.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    {request.requested_amount && (
+                      <div className="hidden md:flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-900 font-medium">
+                          {formatCurrency(request.requested_amount)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div>
+                      {getStatusBadge(request.status)}
+                    </div>
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mr-auto md:mr-0"
+                      icon={<Eye className="w-4 h-4" />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewDetails(request);
+                      }}
+                    >
+                      التفاصيل
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد طلبات</h3>
+            <p className="text-gray-500 mb-4">
+              {searchTerm || statusFilter !== 'all'
+                ? 'لا توجد نتائج تطابق معايير البحث'
+                : 'لم تقم بتقديم أي طلبات خدمة حتى الآن'}
+            </p>
+            {searchTerm || statusFilter !== 'all' ? (
+              <Button
+                variant="outline"
+                icon={<Filter className="w-5 h-5 ml-2" />}
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('all');
+                }}
+              >
+                عرض جميع الطلبات
+              </Button>
+            ) : filteredRequests.length === 0 && (
+              <Button 
+                onClick={() => window.location.href = '/beneficiary?tab=services'}
+                icon={<ArrowRight className="w-5 h-5 ml-2" />}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                تقديم طلب خدمة جديد
+              </Button>
+
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Request Timeline */}
+      {filteredRequests.length > 0 && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-4">مراحل معالجة الطلب</h3>
+          
+          <div className="relative border-r-2 border-blue-300 pr-6 space-y-8 mr-4">
+            <div className="relative">
+              <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-0 w-4 h-4 rounded-full bg-blue-500"></div>
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+                <span className="text-blue-700 font-medium order-2 md:order-1">استلام الطلب</span>
+                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full order-1 md:order-2">
+                  {formatGregorianDate(new Date().toISOString(), true)}
+                </span>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-0 w-4 h-4 rounded-full bg-amber-500"></div>
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+                <span className="text-amber-700 font-medium order-2 md:order-1">مراجعة الطلب</span>
+                <span className="text-xs text-amber-600 bg-amber-100 px-2 py-1 rounded-full order-1 md:order-2">
+                  قيد التنفيذ
+                </span>
+              </div>
+            </div>
+            
+            <div className="relative opacity-50">
+              <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-0 w-4 h-4 rounded-full bg-gray-300"></div>
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+                <span className="text-gray-700 font-medium order-2 md:order-1">اتخاذ القرار</span>
+                <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full order-1 md:order-2">
+                  قريباً
+                </span>
+              </div>
+            </div>
+            
+            <div className="relative opacity-50">
+              <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-0 w-4 h-4 rounded-full bg-gray-300"></div>
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+                <span className="text-gray-700 font-medium order-2 md:order-1">تنفيذ الخدمة</span>
+                <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full order-1 md:order-2">
+                  في انتظار الموافقة
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Important Notice */}
+      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-6">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0">
+            <AlertTriangle className="w-6 h-6 text-amber-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-amber-900 mb-2">ملاحظات هامة حول الطلبات</h3>
+            <ul className="space-y-1 text-sm text-amber-800">
+              <li>• يمكنك متابعة حالة طلباتك من هذه الصفحة</li>
+              <li>• في حال طلب أي مستندات إضافية، سيتم إشعارك عبر رسالة نصية</li>
+              <li>• قد تستغرق مراجعة الطلبات من 3-7 أيام عمل</li>
+              <li>• للاستفسار عن طلب معين، يرجى التواصل مع الفرع المسجل لديك</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Request Details Modal */}
+      {selectedRequest && (
+        <RequestDetailsModal
+          isOpen={showDetailsModal}
+          onClose={handleCloseModal}
+          request={selectedRequest}
+          memberData={memberData}
+        />
+      )}
+    </div>
+  );
+};
+
+export default BeneficiaryRequests;
