@@ -245,6 +245,7 @@ class ApiClient {
           functionName === 'admin-quick-search' || 
           functionName === 'branch-manager-reports' || 
           functionName === 'admin-analytics' || 
+          functionName === 'employee-reports') {
         console.log(`⚠️ محاولة استدعاء وظيفة محذوفة: ${functionName}`);
         return { 
           success: false, 
@@ -256,15 +257,8 @@ class ApiClient {
       // التحقق من إعدادات Supabase
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-          functionName === 'employee-reports') {
-        console.warn(`Function ${functionName} has been removed`);
-        return { success: false, error: 'هذه الوظيفة غير متاحة حالياً' } as unknown as T;
-      }
       
       // Check if Supabase URL is configured
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
       if (!supabaseUrl) {
         throw new Error('VITE_SUPABASE_URL is not configured');
       }
