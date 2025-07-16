@@ -258,7 +258,6 @@ class ApiClient {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
-      // Check if Supabase URL is configured
       if (!supabaseUrl) {
         throw new Error('VITE_SUPABASE_URL is not configured');
       }
