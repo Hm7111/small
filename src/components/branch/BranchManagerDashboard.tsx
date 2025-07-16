@@ -228,7 +228,6 @@ const BranchManagerDashboard: React.FC = () => {
       description: 'إدارة المستفيدين في الفرع',
       badge: state.stats && state.stats.totalMembers > 0 ? state.stats.totalMembers.toString() : undefined,
       color: 'purple'
-    },
     }
   ];
 
