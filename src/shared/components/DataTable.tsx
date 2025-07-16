@@ -14,12 +14,14 @@ export interface Column<T> {
 export interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
-  keyExtractor: (row: T) => string | number;
+  keyExtractor: (row: T) => string | number; 
   emptyState?: React.ReactNode;
   onRowClick?: (row: T) => void;
   sortable?: boolean;
-  pagination?: boolean;
+  pagination?: boolean; 
   pageSize?: number;
+  total?: number;
+  onPageChange?: (page: number) => void;
   loading?: boolean;
   className?: string;
 }
@@ -30,12 +32,14 @@ export interface DataTableProps<T> {
 export function DataTable<T>({
   columns,
   data,
-  keyExtractor,
+  keyExtractor, 
   emptyState,
   onRowClick,
   sortable = true,
-  pagination = true,
+  pagination = true, 
   pageSize = 10,
+  total,
+  onPageChange,
   loading = false,
   className = '',
 }: DataTableProps<T>) {
@@ -63,14 +67,14 @@ export function DataTable<T>({
   }, [data, sortKey, sortDirection]);
 
   // حساب عدد الصفحات
-  const totalPages = Math.ceil(sortedData.length / pageSize);
+  const totalPages = total ? Math.ceil(total / pageSize) : Math.ceil(sortedData.length / pageSize);
   
   // البيانات المعروضة في الصفحة الحالية
   const pageData = React.useMemo(() => {
     if (!pagination) return sortedData;
     const startIndex = (currentPage - 1) * pageSize;
     return sortedData.slice(startIndex, startIndex + pageSize);
-  }, [sortedData, currentPage, pageSize, pagination]);
+  }, [sortedData, currentPage, pageSize, pagination]); 
 
   // تغيير ترتيب الفرز
   const handleSort = (key: string) => {
@@ -93,7 +97,10 @@ export function DataTable<T>({
 
   // التنقل بين الصفحات
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    setCurrentPage(page); 
+    if (onPageChange) {
+      onPageChange(page);
+    }
   };
 
   // عرض حالة فارغة
@@ -186,7 +193,7 @@ export function DataTable<T>({
         {pagination && totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              عرض {(currentPage - 1) * pageSize + 1} إلى {Math.min(currentPage * pageSize, sortedData.length)} من أصل {sortedData.length} سجل
+              عرض {(currentPage - 1) * pageSize + 1} إلى {Math.min(currentPage * pageSize, total || sortedData.length)} من أصل {total || sortedData.length} سجل
             </div>
             <div className="flex space-x-2 space-x-reverse">
               <button

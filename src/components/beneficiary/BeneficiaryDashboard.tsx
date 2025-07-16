@@ -121,6 +121,7 @@ const BeneficiaryDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
+      console.log('جاري تحميل بيانات المستفيد...');
 
       // التحقق من وجود الجلسة قبل محاولة جلب البيانات
       const { data: session } = await supabase.auth.getSession();
@@ -129,26 +130,29 @@ const BeneficiaryDashboard: React.FC = () => {
       }
 
       // جلب بيانات المستفيد
-      const { data: member, error: memberError } = await supabase
-        .from('members')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+      const { data: memberData, error: memberError } = await supabase
+        .from('members')  
+        .select('*')  
+        .eq('user_id', userId)  
+        .maybeSingle(); // استخدام maybeSingle بدلاً من single لتجنب الأخطاء
+      
+      console.log('نتيجة استعلام بيانات المستفيد:', memberData ? 'تم العثور على البيانات' : 'لم يتم العثور على بيانات');
 
-      if (memberError) {
+      if (memberError && memberError.code !== 'PGRST116') {
+        console.error('خطأ في جلب بيانات المستفيد:', memberError);
         throw new Error(`خطأ في جلب بيانات المستفيد: ${memberError.message}`);
-      } else if (!member) {
+      } else if (!memberData) {
         setMemberData(null);
         setError('لم يتم العثور على بيانات المستفيد. يرجى إكمال التسجيل.');
       } else {
-        setMemberData(member);
+        setMemberData(memberData);
         
         // جلب اسم الفرع إذا كان هناك فرع مفضل
-        if (member.preferred_branch_id) {
+        if (memberData.preferred_branch_id) {
           const { data: branch } = await supabase
             .from('branches')
             .select('name')
-            .eq('id', member.preferred_branch_id)
+            .eq('id', memberData.preferred_branch_id)
             .single();
             
           if (branch) {
@@ -157,8 +161,8 @@ const BeneficiaryDashboard: React.FC = () => {
         }
         
         // جلب الإحصائيات إذا كان المستفيد معتمداً
-        if (member.registration_status === 'approved') {
-          await fetchRealStats(member.id);
+        if (memberData.registration_status === 'approved') {
+          await fetchRealStats(memberData.id);
         }
       }
     } catch (err) {
@@ -288,18 +292,6 @@ const BeneficiaryDashboard: React.FC = () => {
     });
   }
 
-  // Error handling and loading states
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">جاري تحميل بيانات المستفيد...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -333,7 +325,17 @@ const BeneficiaryDashboard: React.FC = () => {
   // Render the appropriate content based on active tab
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard':
+      case 'dashboard': {
+        if (isLoading) {
+          return (
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 text-lg">جاري تحميل البيانات...</p>
+              </div>
+            </div>
+          );
+        }
         return (
           <div className="space-y-6">
             {/* Dashboard Header */}
@@ -375,6 +377,7 @@ const BeneficiaryDashboard: React.FC = () => {
             />
           </div>
         );
+      }
       case 'services':
         return (
           <ServicesList 

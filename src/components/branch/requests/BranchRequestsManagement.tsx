@@ -3,6 +3,7 @@ import { FileText, RefreshCw } from '../../../constants/icons';
 import Button from '../../ui/Button';
 import { ServiceRequest } from '../../types/requests';
 import { REQUESTS_TEXTS } from '../../../constants/texts';
+import Alert from '../../ui/Alert';
 
 // Import components
 import RequestsTable from './RequestsTable';
@@ -159,6 +160,15 @@ const BranchRequestsManagement: React.FC<BranchRequestsManagementProps> = ({
 
   return (
     <div className="space-y-6">
+      {error && (
+        <Alert 
+          type="error" 
+          title="خطأ في تحميل البيانات" 
+          message={error}
+          onClose={() => setError(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
         <div className="flex items-center justify-between mb-6">
@@ -193,10 +203,13 @@ const BranchRequestsManagement: React.FC<BranchRequestsManagementProps> = ({
 
       {/* Requests Table */}
       <RequestsTable
-        requests={filteredRequests}
+        requests={filteredRequests.slice(0, 20)} // إضافة pagination للعرض
         onStatusChange={handleStatusChange}
         onViewDetails={handleViewDetails}
-        loading={isLoading && !initialLoadComplete}
+        loading={isLoading}
+        pageSize={10}
+        total={filteredRequests.length}
+        onPageChange={(page) => console.log('تم تغيير الصفحة:', page)}
       />
 
       {/* Request Details Modal */}

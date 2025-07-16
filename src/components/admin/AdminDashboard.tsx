@@ -40,7 +40,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialLoading = true }
   // Define fetchStats function as a no-op since reports are removed
   const fetchStats = useCallback(() => {
     // Reports functionality has been removed
-    // This function is kept as a placeholder to prevent errors
+    // نجعلها دالة فارغة لمنع الأخطاء
+    return Promise.resolve();
   }, []);
 
   const navigationItems = [
@@ -90,21 +91,27 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialLoading = true }
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'users':
+      case 'users': {
         return <UsersManagement onStatsUpdate={fetchStats} />;
-      case 'branches':
+      }
+      case 'branches': {
         return <BranchesManagement onStatsUpdate={fetchStats} />;
-      case 'services':
+      }
+      case 'services': {
         return <ServicesManagement onStatsUpdate={fetchStats} />;
-      case 'settings':
+      }
+      case 'settings': {
         return <SystemSettings />;
-      default:
-      return <UsersManagement onStatsUpdate={() => {}} />;
+      }
+      default: {
+        return <UsersManagement onStatsUpdate={fetchStats} />;
+      }
     }
   };
 
   return (
     <AdminLayout
+      {...props}
       navigationItems={navigationItems}
       user={user}
       activeTab={activeTab}
