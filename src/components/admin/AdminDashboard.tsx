@@ -151,7 +151,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialLoading = true }
 
     switch (activeTab) {
       case 'dashboard':
-        return stats ? <ReportsAnalytics stats={stats} /> : null;
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">الإحصائيات العامة</h2>
+              {stats && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">إجمالي المستخدمين</h3>
+                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.totalUsers}</p>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-green-600 dark:text-green-400">إجمالي المستفيدين</h3>
+                    <p className="text-2xl font-bold text-green-900 dark:text-green-100">{stats.totalMembers}</p>
+                  </div>
+                  <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-orange-600 dark:text-orange-400">الطلبات المعلقة</h3>
+                    <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">{stats.pendingRequests}</p>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-purple-600 dark:text-purple-400">الفروع النشطة</h3>
+                    <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{stats.activeBranches}</p>
+                  </div>
+                  <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-indigo-600 dark:text-indigo-400">إجمالي الخدمات</h3>
+                    <p className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">{stats.totalServices}</p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">حالة النظام</h3>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.systemHealth}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
       case 'users':
         return <UsersManagement onStatsUpdate={fetchStats} />;
       case 'branches':

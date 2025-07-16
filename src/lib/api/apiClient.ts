@@ -195,11 +195,23 @@ class ApiClient {
    */
   public async callFunction<T = any>(functionName: string, data: any = {}): Promise<T> {
     try {
+      // Check if Supabase URL is configured
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl) {
+        throw new Error('VITE_SUPABASE_URL is not configured');
+      }
+      
+      if (!supabaseKey) {
+        throw new Error('VITE_SUPABASE_ANON_KEY is not configured');
+      }
+      
       // Use direct fetch for edge functions to avoid CORS issues
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`, {
+      const response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${supabaseKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data),
@@ -226,13 +238,19 @@ class ApiClient {
     } catch (error) {
       console.error(`Error calling function "${functionName}":`, error);
       // Log additional details to help with debugging
-      console.error(`URL: ${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`);
+      console.error(`URL: ${import.meta.env.VITE_SUPABASE_URL || 'UNDEFINED'}/functions/v1/${functionName}`);
       console.error(`Request data:`, data);
       if (error instanceof Error) {
         console.error(`Error name: ${error.name}, message: ${error.message}`);
       } else {
         console.error(`Unknown error type:`, error);
       }
+      
+      // Provide more descriptive error messages
+      if (error instanceof Error && error.message.includes('Failed to fetch')) {
+        throw new Error(`فشل في الاتصال بالخادم. تحقق من إعدادات الشبكة والاتصال بالإنترنت.`);
+      }
+      
       throw error;
     }
   }

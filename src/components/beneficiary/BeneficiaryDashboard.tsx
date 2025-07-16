@@ -133,15 +133,13 @@ const BeneficiaryDashboard: React.FC = () => {
         .from('members')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (memberError) {
-        if (memberError.code === 'PGRST116') {
-          setMemberData(null);
-          setError('لم يتم العثور على بيانات المستفيد. يرجى إكمال التسجيل.');
-        } else {
-          throw new Error(`خطأ في جلب بيانات المستفيد: ${memberError.message}`);
-        }
+        throw new Error(`خطأ في جلب بيانات المستفيد: ${memberError.message}`);
+      } else if (!member) {
+        setMemberData(null);
+        setError('لم يتم العثور على بيانات المستفيد. يرجى إكمال التسجيل.');
       } else {
         setMemberData(member);
         
