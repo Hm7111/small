@@ -37,6 +37,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialLoading = true }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Define fetchStats function as a no-op since reports are removed
+  const fetchStats = useCallback(() => {
+    // Reports functionality has been removed
+    // This function is kept as a placeholder to prevent errors
+  }, []);
+
   const navigationItems = [
     {
       id: 'users',
