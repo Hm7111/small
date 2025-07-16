@@ -6,12 +6,11 @@ import {
 import EmployeeLayout from './EmployeeLayout';
 import EmployeeDashboardStats from './dashboard/EmployeeDashboardStats';
 import RegistrationReviewList from './registration/RegistrationReviewList';
-import EmployeeReports from './reports/EmployeeReports';
 import { useTheme } from '../../components/ui/ThemeProvider';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 interface EmployeeState {
-  activeTab: 'dashboard' | 'registrations' | 'documents' | 'profile' | 'reports';
+  activeTab: 'dashboard' | 'registrations' | 'documents' | 'profile';
   userData: any;
   employeeData: any;
   branchData: any;
@@ -105,12 +104,6 @@ const EmployeeDashboard: React.FC = () => {
       description: 'مراجعة ملفات المستفيدين'
     },
     {
-      id: 'reports',
-      title: 'التقارير التفصيلية',
-      icon: <FileSearch className="w-5 h-5" />,
-      description: 'عرض تقارير المستفيدين المسندين'
-    },
-    {
       id: 'profile',
       title: 'الملف الشخصي',
       icon: <User className="w-5 h-5" />,
@@ -142,12 +135,6 @@ const EmployeeDashboard: React.FC = () => {
             <p className="text-gray-600">صفحة التحقق من المستندات قيد التطوير</p>
           </div>
         );
-      case 'reports':
-        return <EmployeeReports 
-          employeeId={user?.id || ''} 
-          employeeName={user?.full_name || 'الموظف'} 
-          branchId={user?.branch_id || ''} 
-        />;
       case 'profile':
         return (
           <div className="text-center py-12">

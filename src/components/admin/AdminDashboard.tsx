@@ -3,7 +3,6 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import { adminService } from '../../features/admin/services/adminService';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import AdminLayout from './AdminLayout'; // Assuming AdminLayout is default export
-import ReportsAnalytics from './ReportsAnalytics';
 import UsersManagement from './users/UsersManagement';
 import BranchesManagement from './branches/BranchesManagement';
 import ServicesManagement from './services/ServicesManagement';
@@ -35,7 +34,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialLoading = true }
     activeBranches: number;
     totalServices: number;
     systemHealth: string;
-  } | null>(null);
+  } | null>(null); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,13 +66,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialLoading = true }
       icon: <FileText />,
       description: 'إدارة الخدمات المقدمة',
       color: 'bg-orange-500'
-    },
-    {
-      id: 'reports',
-      title: 'التقارير والتحليلات',
-      icon: <BarChart3 />,
-      description: 'عرض التقارير والإحصائيات',
-      color: 'bg-indigo-500'
     },
     {
       id: 'settings',
@@ -166,12 +158,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialLoading = true }
         return <BranchesManagement onStatsUpdate={fetchStats} />;
       case 'services':
         return <ServicesManagement onStatsUpdate={fetchStats} />;
-      case 'reports':
-        return stats ? <ReportsAnalytics stats={stats} /> : null;
       case 'settings':
         return <SystemSettings />;
       default:
-        return stats ? <ReportsAnalytics stats={stats} /> : null;
+      return <UsersManagement onStatsUpdate={fetchStats} />;
     }
   };
 

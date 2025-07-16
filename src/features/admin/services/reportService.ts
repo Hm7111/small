@@ -98,14 +98,22 @@ class ReportService {
    */
   async getSystemAnalytics(): Promise<ApiResponse<SystemAnalytics>> {
     try {
-      const result = await apiClient.callFunction<SystemAnalytics>(
-        'admin-analytics',
-        {
-          action: 'get_analytics'
-        }
-      ) as unknown as ApiResponse<SystemAnalytics>;
+      // Return empty analytics to avoid breaking functionality
+      const fallbackAnalytics: SystemAnalytics = {
+        total_beneficiaries: 0,
+        active_beneficiaries: 0,
+        total_requests_this_month: 0,
+        approval_rate: 0,
+        average_processing_time: 0,
+        top_services: [],
+        branch_performance: []
+      };
 
-      return result;
+      return {
+        success: false,
+        data: fallbackAnalytics,
+        error: 'تم إلغاء وظيفة التقارير'
+      };
     } catch (error: any) {
       console.error('System analytics error:', error);
       

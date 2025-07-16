@@ -105,47 +105,6 @@ export interface DashboardStats {
 class AdminService {
   
   /**
-   * Reports Management
-   */
-  public reports = {
-    /**
-     * Generate comprehensive report
-     */
-    async generateComprehensive(
-      criteria: SearchCriteria
-    ): Promise<ApiResponse<ComprehensiveReport>> {
-      return await reportService.generateComprehensiveReport(criteria);
-    },
-
-    /**
-     * Quick search for suggestions
-     */
-    async quickSearch(query: string) {
-      return await reportService.quickSearch(query);
-    },
-
-    /**
-     * Execute admin action
-     */
-    async executeAction(action: AdminAction) {
-      return await reportService.executeAdminAction(action);
-    },
-
-    /**
-     * Export report
-     */
-    async export(reportId: string, format: 'pdf' | 'excel' | 'csv') {
-      return await reportService.exportReport(reportId, format);
-    },
-
-    /**
-     * Get system analytics
-     */
-    async getSystemAnalytics(): Promise<ApiResponse<SystemAnalytics>> {
-      return await reportService.getSystemAnalytics();
-    }
-  };
-  /**
    * Services Management
    */
   public services = {
