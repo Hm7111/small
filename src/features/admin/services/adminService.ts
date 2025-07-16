@@ -1,12 +1,5 @@
 import { apiClient } from '../../../lib/api/apiClient';
 import { ApiResponse } from '../../../core/types/api';
-import { reportService } from './reportService';
-import { 
-  SearchCriteria, 
-  ComprehensiveReport, 
-  SystemAnalytics,
-  AdminAction 
-} from '../../../types/reports';
 
 /**
  * Types for Admin Service
@@ -97,11 +90,6 @@ export interface DashboardStats {
   approvedRequests?: number;
 }
 
-/**
- * Admin Service
- * Handles all admin-related operations
- * Implements Repository Pattern for data access
- */
 class AdminService {
   
   /**
@@ -372,87 +360,6 @@ class AdminService {
       }
     }
   };
-
-  /**
-   * Dashboard Statistics
-   */
-  public dashboard = {
-    /**
-     * Get dashboard statistics
-     */
-    async getStats(adminId: string): Promise<DashboardStats> {
-      try {
-        const response = await apiClient.callFunction<{ stats: DashboardStats }>(
-          'admin-stats',
-          { adminId }
-        ) as unknown as ApiResponse<{ stats: DashboardStats }>;
-        
-        if (response.success && response.data?.stats) {
-          return response.data.stats;
-        }
-        
-        // Return default stats if API call fails
-        return {
-          totalUsers: 0,
-          totalMembers: 0,
-          pendingRequests: 0,
-          activeBranches: 0,
-          totalServices: 0,
-          systemHealth: 'good'
-        };
-      } catch (error: any) {
-        console.error('Error fetching dashboard stats:', error);
-        
-        // Return default stats on error
-        return {
-          totalUsers: 0,
-          totalMembers: 0,
-          pendingRequests: 0,
-          activeBranches: 0,
-          totalServices: 0,
-          systemHealth: 'warning'
-        };
-      }
-    }
-  };
-
-  /**
-   * Get dashboard statistics (static method)
-   */
-  static async getStats(adminId: string): Promise<DashboardStats> {
-    try {
-      const response = await apiClient.callFunction<{ stats: DashboardStats }>(
-        'admin-stats',
-        { adminId }
-      ) as unknown as ApiResponse<{ stats: DashboardStats }>;
-      
-      if (response.success && response.data?.stats) {
-        return response.data.stats;
-      }
-      
-      // Return default stats if API call fails
-      return {
-        totalUsers: 0,
-        totalMembers: 0,
-        pendingRequests: 0,
-        activeBranches: 0,
-        totalServices: 0,
-        systemHealth: 'good'
-      };
-    } catch (error: any) {
-      console.error('Error fetching dashboard stats:', error);
-      
-      // Return default stats on error
-      return {
-        totalUsers: 0,
-        totalMembers: 0,
-        pendingRequests: 0,
-        activeBranches: 0,
-        totalServices: 0,
-        systemHealth: 'warning'
-      };
-    }
-  }
 }
 
 // Export as singleton instance

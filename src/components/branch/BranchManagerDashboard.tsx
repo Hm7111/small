@@ -12,7 +12,6 @@ import RegistrationReviewList from './registration/RegistrationReviewList';
 import BranchMembersManagement from './members/BranchMembersManagement';
 import BranchDashboard from './dashboard/BranchDashboard';
 import BranchRequestsManagement from './requests/BranchRequestsManagement';
-import BranchEmployeesManagement from './employees/BranchEmployeesManagement';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { formatGregorianDate } from '../../shared/utils/dateHelpers';
 
@@ -230,13 +229,6 @@ const BranchManagerDashboard: React.FC = () => {
       badge: state.stats && state.stats.totalMembers > 0 ? state.stats.totalMembers.toString() : undefined,
       color: 'purple'
     },
-    {
-      id: 'employees',
-      title: 'الموظفين',
-      icon: <User className="w-5 h-5" />,
-      description: 'إدارة موظفي الفرع',
-      badge: state.stats && state.stats.employeesCount > 0 ? state.stats.employeesCount.toString() : undefined,
-      color: 'indigo'
     }
   ];
 
@@ -263,8 +255,6 @@ const BranchManagerDashboard: React.FC = () => {
         return <BranchMembersManagement branch={state.branchData} onStatsUpdate={loadBranchData} />;
       case 'requests':
         return <BranchRequestsManagement branch={state.branchData} onStatsUpdate={loadBranchData} />;
-      case 'employees':
-        return <BranchEmployeesManagement branch={state.branchData} onStatsUpdate={loadBranchData} />;
       default:
         return <BranchDashboard stats={state.stats || defaultStats} branch={state.branchData} isLoading={state.isLoading} onRefresh={loadBranchData} recentActivities={recentActivities} />;
     }

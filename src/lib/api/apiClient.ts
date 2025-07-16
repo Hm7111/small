@@ -195,6 +195,16 @@ class ApiClient {
    */
   public async callFunction<T = any>(functionName: string, data: any = {}): Promise<T> {
     try {
+      // تحقق من وجود الدالة قبل استدعائها
+      if (functionName === 'admin-stats' || 
+          functionName === 'admin-comprehensive-report' || 
+          functionName === 'admin-quick-search' || 
+          functionName === 'branch-manager-reports' || 
+          functionName === 'employee-reports') {
+        console.warn(`Function ${functionName} has been removed`);
+        return { success: false, error: 'هذه الوظيفة غير متاحة حالياً' } as unknown as T;
+      }
+      
       // Check if Supabase URL is configured
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;

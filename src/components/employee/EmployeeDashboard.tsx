@@ -6,7 +6,6 @@ import {
 import EmployeeLayout from './EmployeeLayout';
 import EmployeeDashboardStats from './dashboard/EmployeeDashboardStats';
 import RegistrationReviewList from './registration/RegistrationReviewList';
-import { useTheme } from '../../components/ui/ThemeProvider';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 interface EmployeeState {
@@ -96,12 +95,6 @@ const EmployeeDashboard: React.FC = () => {
       icon: <FileCheck className="w-5 h-5" />,
       description: 'مراجعة طلبات التسجيل',
       badge: state.stats.assignedToMe > 0 ? state.stats.assignedToMe.toString() : undefined
-    },
-    {
-      id: 'documents',
-      title: 'التحقق من المستندات',
-      icon: <FileText className="w-5 h-5" />,
-      description: 'مراجعة ملفات المستفيدين'
     },
     {
       id: 'profile',
